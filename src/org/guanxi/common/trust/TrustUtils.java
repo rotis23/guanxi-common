@@ -267,8 +267,11 @@ public class TrustUtils {
     if (samlResponse instanceof org.guanxi.xal.saml_1_0.protocol.ResponseDocument) {
       keyInfo = ((org.guanxi.xal.saml_1_0.protocol.ResponseDocument)(samlResponse)).getResponse().getSignature().getKeyInfo();
     }
-    else if (samlResponse instanceof org.guanxi.xal.saml_2_0.protocol.ResponseDocument) {
+    else if (samlResponse instanceof org.guanxi.xal.saml_2_0.protocol.ResponseDocument && isEncrypted((ResponseDocument)samlResponse)) {
       keyInfo = ((org.guanxi.xal.saml_2_0.protocol.ResponseDocument)(samlResponse)).getResponse().getSignature().getKeyInfo();
+    }
+    else if (samlResponse instanceof org.guanxi.xal.saml_2_0.protocol.ResponseDocument && !isEncrypted((ResponseDocument)samlResponse)) {
+      keyInfo = ((org.guanxi.xal.saml_2_0.protocol.ResponseDocument)(samlResponse)).getResponse().getAssertionArray(0).getSignature().getKeyInfo();
     }
 
     try {
