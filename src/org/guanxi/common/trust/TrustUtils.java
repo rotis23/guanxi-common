@@ -18,9 +18,9 @@ package org.guanxi.common.trust;
 
 import org.apache.xml.security.signature.ObjectContainer;
 import org.guanxi.xal.saml_2_0.metadata.*;
+import org.guanxi.xal.saml_2_0.protocol.ResponseDocument;
 import org.guanxi.xal.w3.xmldsig.X509DataType;
 import org.guanxi.xal.w3.xmldsig.KeyInfoType;
-import org.guanxi.xal.saml_1_0.protocol.ResponseDocument;
 import org.guanxi.common.GuanxiException;
 import org.apache.log4j.Logger;
 import org.apache.xml.security.signature.XMLSignature;
@@ -35,6 +35,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
+
 import java.security.cert.*;
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
@@ -198,7 +199,8 @@ public class TrustUtils {
    * @return true if validation succeeds otherwise false
    * @throws GuanxiException if an error occurs
    */
-  public static boolean validatePKIX(ResponseDocument samlResponse, EntityDescriptorType saml2Metadata,
+  public static boolean validatePKIX(org.guanxi.xal.saml_1_0.protocol.ResponseDocument samlResponse, 
+		  EntityDescriptorType saml2Metadata,
                                      Vector<X509Certificate> caCerts,
                                      String hostName) throws GuanxiException {
     /* PKIX Path Validation
@@ -551,8 +553,14 @@ public class TrustUtils {
 
       // Make sure the signature reference is not suspicious
       String rootResponseID = null;
-      if (doc.getFirstChild().getAttributes().getNamedItem("ID") != null) {
-        // SAML2
+      
+      if (samlMessage instanceof ResponseDocument &&
+    		 !isEncrypted((ResponseDocument)samlMessage) && ((ResponseDocument)samlMessage).getResponse().getAssertionArray(0).getSignature() != null) {
+    	  
+    	  rootResponseID = ((ResponseDocument)samlMessage).getResponse().getAssertionArray(0).getID();
+      }
+      else if (doc.getFirstChild().getAttributes().getNamedItem("ID") != null) {
+        // SAML2	  
         rootResponseID = doc.getFirstChild().getAttributes().getNamedItem("ID").getTextContent();
       }
       else if (doc.getFirstChild().getAttributes().getNamedItem("ResponseID") != null) {
@@ -586,6 +594,20 @@ public class TrustUtils {
       throw new GuanxiException(xse);
     }
   }
+
+  /**
+	 * Determines whether a SAML2 Response is encrypted
+	 * 
+	 * @param responseDoc
+	 *            the Response to check for encryption
+	 * @return true if the Response is encrypted, otherwise false
+	 */
+	public static boolean isEncrypted(ResponseDocument responseDoc) {
+		return ((responseDoc.getResponse().getEncryptedAssertionArray() != null) && 
+				(responseDoc.getResponse().getEncryptedAssertionArray().length > 0));
+	}
+
+
 
   /**
    * This passes through the nodes of the document looking for the Reference Id and
