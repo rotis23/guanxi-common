@@ -556,6 +556,7 @@ public class TrustUtils {
 
       // Make sure the signature reference is not suspicious
       String rootResponseID = null;
+      String assertionID = null;
       
       //try and use the Assertion ID first
       if (samlMessage instanceof ResponseDocument &&
@@ -563,10 +564,12 @@ public class TrustUtils {
     		  ((ResponseDocument)samlMessage).getResponse().getAssertionArray().length > 0 &&
     		  ((ResponseDocument)samlMessage).getResponse().getAssertionArray(0).getSignature() != null) {
     	  
-    	  rootResponseID = ((ResponseDocument)samlMessage).getResponse().getAssertionArray(0).getID();
+    	  assertionID = ((ResponseDocument)samlMessage).getResponse().getAssertionArray(0).getID();
+    	  logger.debug("Found assertion ID: " + assertionID);
       }
+      
       //then fall back to the response ID
-      else if (doc.getFirstChild().getAttributes().getNamedItem("ID") != null) {
+      if (doc.getFirstChild().getAttributes().getNamedItem("ID") != null) {
         // SAML2	  
         rootResponseID = doc.getFirstChild().getAttributes().getNamedItem("ID").getTextContent();
       }
@@ -574,13 +577,19 @@ public class TrustUtils {
         // Shibboleth
         rootResponseID = doc.getFirstChild().getAttributes().getNamedItem("ResponseID").getTextContent();
       }
+      
+      logger.debug("Found response ID: " + rootResponseID);
 
       if (rootResponseID == null) {
         throw new GuanxiException("No Response ID");
       }
 
       String signatureReference = xmlSignature.getSignedInfo().getReferencedContentBeforeTransformsItem(0).getSourceURI();
-      if ((!signatureReference.equals("")) && (!(("#" + rootResponseID).equals(signatureReference)))) {
+      
+      logger.debug("Found signatureReference: " + signatureReference);
+      
+      if ((!signatureReference.equals("")) && 
+    		  (!((("#" + rootResponseID).equals(signatureReference)) || (("#" + assertionID).equals(signatureReference))))) {
         throw new GuanxiException("The signature reference is not for the Response");
       }
 
