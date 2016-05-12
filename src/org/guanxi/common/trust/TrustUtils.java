@@ -557,11 +557,15 @@ public class TrustUtils {
       // Make sure the signature reference is not suspicious
       String rootResponseID = null;
       
+      //try and use the Assertion ID first
       if (samlMessage instanceof ResponseDocument &&
-    		 !isEncrypted((ResponseDocument)samlMessage) && ((ResponseDocument)samlMessage).getResponse().getAssertionArray(0).getSignature() != null) {
+    		  ((ResponseDocument)samlMessage).getResponse().getAssertionArray() != null &&
+    		  ((ResponseDocument)samlMessage).getResponse().getAssertionArray().length > 0 &&
+    		  ((ResponseDocument)samlMessage).getResponse().getAssertionArray(0).getSignature() != null) {
     	  
     	  rootResponseID = ((ResponseDocument)samlMessage).getResponse().getAssertionArray(0).getID();
       }
+      //then fall back to the response ID
       else if (doc.getFirstChild().getAttributes().getNamedItem("ID") != null) {
         // SAML2	  
         rootResponseID = doc.getFirstChild().getAttributes().getNamedItem("ID").getTextContent();
