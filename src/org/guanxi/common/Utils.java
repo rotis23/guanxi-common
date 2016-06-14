@@ -16,7 +16,14 @@
 
 package org.guanxi.common;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.StringWriter;
 import java.net.URL;
 import java.rmi.server.UID;
 import java.text.SimpleDateFormat;
@@ -25,7 +32,12 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.TimeZone;
-import java.util.zip.*;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.Inflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.Transformer;
@@ -375,20 +387,25 @@ public class Utils {
   }
 
   /**
-   * Deflates data according to RFC1951
+   * Deflates data according to RFC1951 and base64 encodes
    *
    * @param data the data to deflate
    * @param compressionLevel the compression level to use
    * @param useWrap if true then the ZLIB header and checksum fields will not be used.
    *        This provides compatibility with the compression format used by both GZIP and PKZIP.
    * @return String representing the deflated data
-   */
-  public static String deflate(String data, int compressionLevel, boolean useWrap) {
-    byte[] deflatedData = new byte[data.length()];
-    Deflater deflater = new Deflater(compressionLevel, useWrap);
-    deflater.setInput(data.getBytes());
-    deflater.finish();
-    int deflatedBytesLength = deflater.deflate(deflatedData);
-    return new String(deflatedData, 0, deflatedBytesLength);
+   */  
+  public static String deflateBase64(String data, int compressionLevel, boolean useWrap) throws GuanxiException {
+	try {
+      ByteArrayOutputStream os = new ByteArrayOutputStream();
+      Deflater deflater = new Deflater( compressionLevel, useWrap );
+      DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(os, deflater);
+	  deflaterOutputStream.write( data.getBytes() );
+      deflaterOutputStream.close();
+      os.close();
+      return base64(os.toByteArray());
+  	} catch (IOException e) {
+  		throw new GuanxiException(e);
+	}
   }
 }
