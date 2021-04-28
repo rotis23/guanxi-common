@@ -117,12 +117,12 @@ public abstract class ShibbolethSAML2MetadataParser {
     X509Certificate metadataCert = getX509FromMetadataSignature();
 
     if (metadataCert != null) {
-      try {
-        //XMLSignature signature = new XMLSignature((Element)sig.getDomNode(),"");
-        //return signature.checkSignatureValue(metadataCert);
-		return true;
+	return true;
+      /*try {
+        XMLSignature signature = new XMLSignature((Element)sig.getDomNode(),"");
+        return signature.checkSignatureValue(metadataCert);
       }
-      /*catch(XMLSignatureException xse) {
+      catch(XMLSignatureException xse) {
         logger.error("Failed to get signature of metadata", xse);
       }
       catch(XMLSecurityException xse) {
