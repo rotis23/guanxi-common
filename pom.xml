@@ -7,14 +7,14 @@
   <parent>
     <artifactId>guanxi-core</artifactId>
     <groupId>rotis23</groupId>
-    <version>3.1</version>
+    <version>3.0</version>
     <relativePath>../guanxi-core/pom.xml</relativePath>
   </parent>
 
   <name>guanxi-common</name>
   <groupId>rotis23</groupId>
   <artifactId>guanxi-common</artifactId>
-  <version>3.0</version>
+  <version>3.1</version>
 
   <packaging>jar</packaging>
   <properties>
